@@ -26,7 +26,7 @@ https://developer.paypal.com/docs/api/overview/
 ### 1. Install:
 
 ```bash
-composer require artwl/paypal:~2.0
+composer require artwl/laravel-paypal:~2.0
 ```
 
 ### 2. [Optional] Add the service provider in `config/app.php`: 
