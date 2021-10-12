@@ -12,12 +12,12 @@
   ],
   "autoload": {
     "psr-4": {
-      "Srmklive\\PayPal\\": "src/"
+      "artwl\\laravel-paypal\\": "src/"
     }
   },
   "autoload-dev": {
     "psr-4": {
-      "Srmklive\\PayPal\\Tests\\": "tests/"
+      "artwl\\laravel-paypal\\Tests\\": "tests/"
     }
   },
   "require": {
