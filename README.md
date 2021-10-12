@@ -1,15 +1,8 @@
 # Laravel PayPal
 
-[![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square)](LICENSE.md)
-[![Latest Version on Packagist](https://img.shields.io/packagist/v/srmklive/paypal.svg?style=flat-square)](https://packagist.org/packages/srmklive/paypal)
-[![Total Downloads](https://img.shields.io/packagist/dt/srmklive/paypal.svg?style=flat-square)](https://packagist.org/packages/srmklive/paypal)
-[![StyleCI](https://github.styleci.io/repos/43671533/shield?branch=v2.0)](https://github.styleci.io/repos/43671533?branch=v2.0)
-![Tests](https://github.com/srmklive/laravel-paypal/workflows/TestsV2/badge.svg)
-[![Coverage Status](https://coveralls.io/repos/github/srmklive/laravel-paypal/badge.svg?branch=v2.0)](https://coveralls.io/github/srmklive/laravel-paypal?branch=v2.0)
-[![Code Quality](https://scrutinizer-ci.com/g/srmklive/laravel-paypal/badges/quality-score.png?b=v2.0)](https://scrutinizer-ci.com/g/srmklive/laravel-paypal/?branch=v2.0)
+This plugin only supports Laravel 5.1 to 5.8.
 
 - [Introduction](#introduction)
-- [PayPal API Credentials](#paypal-api-credentials)
 - [Installation](#installation)
 - [Configuration](#configuration)
 - [Usage](#usage)
@@ -23,9 +16,6 @@ By using this plugin you can process or refund payments and handle IPN (Instant 
 
 **This plugin supports the new paypal rest api.**
 
-<a name="paypal-api-credentials"></a>
-## PayPal API Credentials
-
 This package uses the new paypal rest api. Refer to this link on how to create API credentials:
 
 https://developer.paypal.com/docs/api/overview/
@@ -33,33 +23,25 @@ https://developer.paypal.com/docs/api/overview/
 <a name="installation"></a>
 ## Installation
 
-* Use following command to install:
+### 1. Install:
 
 ```bash
-composer require srmklive/paypal:~2.0|~3.0
+composer require artwl/paypal:~2.0
 ```
 
-If you wish to use PayPal Express Checkout API, please use the following command:
-
-```bash
-composer require srmklive/paypal:~1.0
-```
-
-Perform the following steps if you are using Laravel 5.4 or less.
-
-* Add the service provider to your `providers[]` array in `config/app.php` file like: 
+### 2. [Optional] Add the service provider in `config/app.php`: 
 
 ```php
 Srmklive\PayPal\Providers\PayPalServiceProvider::class
 ```
 
-* Add the alias to your `aliases[]` array in `config/app.php` file like: 
+### 3. [Optional] Add the alias in `config/app.php`: 
 
 ```php
 'PayPal' => Srmklive\PayPal\Facades\PayPal::class
 ```
 
-* Run the following command to publish configuration:
+### 4. Publish configuration:
 
 ```bash
 php artisan vendor:publish --provider "Srmklive\PayPal\Providers\PayPalServiceProvider"
@@ -92,9 +74,14 @@ return [
 ];
 ```
 
-* Add this to `.env.example` and `.env`
+* Add this to `.env`
 
 ```
+#PayPal API Mode
+
+# Values: sandbox or live (Default: live)
+PAYPAL_MODE=live
+
 #PayPal Setting & API Credentials - sandbox
 PAYPAL_SANDBOX_CLIENT_ID=
 PAYPAL_SANDBOX_CLIENT_SECRET=
@@ -113,48 +100,38 @@ Following are some ways through which you can access the paypal provider:
 // Import the class namespaces first, before using it directly
 use Srmklive\PayPal\Services\PayPal as PayPalClient;
 
-$provider = new PayPalClient;
 
-// Through facade. No need to import namespaces
-$provider = PayPal::setProvider();
+public function orderCreate(){
+    $provider = new PayPalClient;
+    $provider->setApiCredentials(config('paypal'));
+    $provider->getAccessToken();
+    
+    $orderResponse = $provider->createOrder([
+        "intent"=> "CAPTURE",
+        "purchase_units"=> [
+            0 => [
+                "amount"=> [
+                    "currency_code"=> "HKD",
+                    "value"=> "12.00"
+                ]
+            ]
+        ]
+    ]);
+    
+    //order create success
+    if ($orderResponse["status"] == "CREATED") {
+        $orderId = $orderResponse["id"];
+    }
+}
+
+
+//notify_url and webhook url, route need except csrf
+public function payResult(Request $request) {
+    $data = json_decode($request->getContent(), true);
+    //pay success
+    if ($data["event_type"] == "CHECKOUT.ORDER.APPROVED") {
+        $orderId = $data["resource"]["id"];
+    }
+}
 ```
-
-<a name="usage-paypal-api-configuration"></a>
-## Override PayPal API Configuration
-
-You can override PayPal API configuration by calling `setApiCredentials` method:
-
-```php
-$provider->setApiCredentials($config);
-```
-
-
-<a name="usage-paypal-get-access-token"></a>
-## Get Access Token
-
-After setting the PayPal API configuration by calling `setApiCredentials` method. You need to get access token before performing any API calls
-
-```php
-$provider->getAccessToken();
-```
-
-
-<a name="usage-currency"></a>
-## Set Currency
-
-By default the currency used is `USD`. If you wish to change it, you may call `setCurrency` method to set a different currency before calling any respective API methods:
-
-```php
-$provider->setCurrency('EUR');
-```
-            
-<a name="support"></a>
-## Support
-
-This plugin only supports Laravel 5.1 to 5.8.
-* In case of any issues, kindly create one on the [Issues](https://github.com/srmklive/laravel-paypal/issues) section.
-* If you would like to contribute:
-  * Fork this repository.
-  * Implement your features.
-  * Generate pull request.
  
